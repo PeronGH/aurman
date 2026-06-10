@@ -10,13 +10,12 @@ for dir in "$AUR_DIR"/*/; do
     git -C "$dir" pull --ff-only --quiet
 done
 
-mapfile -t outdated < <(
-    "$APPLET_DIR/list.sh" | awk 'NR > 1 && NF == 3 && $2 != $3 && $3 != "-" { print $1 }'
-)
+outdated=$("$APPLET_DIR/list.sh" | awk 'NR > 1 && NF == 3 && $2 != $3 { print $1 }')
 
-if [ ${#outdated[@]} -eq 0 ]; then
+if [ -z "$outdated" ]; then
     echo "all packages are up to date"
     exit 0
 fi
 
-exec "$APPLET_DIR/install.sh" "${outdated[@]}"
+mapfile -t pkgs <<<"$outdated"
+exec "$APPLET_DIR/install.sh" "${pkgs[@]}"

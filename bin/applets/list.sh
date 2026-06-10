@@ -3,14 +3,14 @@ set -euo pipefail
 
 AUR_DIR="$HOME/aur"
 
+die() {
+    echo "${0##*/}: $*" >&2
+    exit 1
+}
+
 pkgbuild_version() {
     local srcinfo=$1
-    local key _ value pkgver='?' pkgrel='?' epoch=''
-
-    if [ ! -f "$srcinfo" ]; then
-        echo "-"
-        return
-    fi
+    local key _ value pkgver='' pkgrel='' epoch=''
 
     while read -r key _ value; do
         case $key in
@@ -20,14 +20,15 @@ pkgbuild_version() {
         esac
     done <"$srcinfo"
 
+    if [ -z "$pkgver" ] || [ -z "$pkgrel" ]; then
+        die "$srcinfo: missing pkgver or pkgrel"
+    fi
+
     echo "${epoch:+$epoch:}$pkgver-$pkgrel"
 }
 
 pkgbuild_names() {
-    local srcinfo=$1
-    if [ -f "$srcinfo" ]; then
-        awk '$1 == "pkgname" { print $3 }' "$srcinfo"
-    fi
+    awk '$1 == "pkgname" { print $3 }' "$1"
 }
 
 installed_version() {
@@ -43,7 +44,13 @@ installed_version() {
 printf '%-30s %-20s %s\n' "PACKAGE" "INSTALLED" "PKGBUILD"
 for dir in "$AUR_DIR"/*/; do
     pkg=$(basename "$dir")
-    mapfile -t names < <(pkgbuild_names "$dir/.SRCINFO")
-    [ ${#names[@]} -gt 0 ] || names=("$pkg")
-    printf '%-30s %-20s %s\n' "$pkg" "$(installed_version "${names[@]}")" "$(pkgbuild_version "$dir/.SRCINFO")"
+    srcinfo="$dir/.SRCINFO"
+
+    [ -f "$srcinfo" ] || die "$pkg: missing .SRCINFO in $dir"
+
+    version=$(pkgbuild_version "$srcinfo")
+    mapfile -t names < <(pkgbuild_names "$srcinfo")
+    [ ${#names[@]} -gt 0 ] || die "$srcinfo: no pkgname entries"
+
+    printf '%-30s %-20s %s\n' "$pkg" "$(installed_version "${names[@]}")" "$version"
 done
