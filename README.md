@@ -12,10 +12,10 @@ aurman.sh <command> [args...]
 
 | Command | Description |
 |---------|-------------|
-| `install <package>...` | Clone the AUR repo, review the PKGBUILD and any install scripts or hooks, and build with `makepkg -si` after confirmation |
-| `list` | List cloned packages with their installed and PKGBUILD versions |
-| `uninstall <package>...` | Remove all installed packages of the base with `pacman -Rns` and delete the clone |
-| `update [<package>...]` | Pull cloned repos and run `install` on packages whose PKGBUILD version differs from the installed one; with arguments, only those packages |
+| `install <package>...` | Clone, review the PKGBUILD and hooks, build after confirmation |
+| `list` | Show cloned packages with installed and PKGBUILD versions |
+| `uninstall <package>...` | `pacman -Rns` the base's packages and delete the clone |
+| `update [<package>...]` | Pull clones (all, or just those named) and `install` the outdated ones |
 
 ## Install
 
