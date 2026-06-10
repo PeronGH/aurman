@@ -13,9 +13,7 @@ mkdir -p "$AUR_DIR"
 
 for pkg in "$@"; do
     dir="$AUR_DIR/$pkg"
-    if [ -d "$dir/.git" ]; then
-        git -C "$dir" pull --ff-only
-    else
+    if [ ! -d "$dir/.git" ]; then
         git clone "$AUR_URL/$pkg.git" "$dir"
     fi
     less "$dir/PKGBUILD"
