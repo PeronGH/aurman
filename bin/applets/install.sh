@@ -18,5 +18,10 @@ for pkg in "$@"; do
     else
         git clone "$AUR_URL/$pkg.git" "$dir"
     fi
-    (cd "$dir" && makepkg -si)
+    less "$dir/PKGBUILD"
+    read -rp "Build and install $pkg? [y/N] " reply
+    case $reply in
+        [yY]) (cd "$dir" && makepkg -si) ;;
+        *) echo "skipping $pkg" ;;
+    esac
 done
