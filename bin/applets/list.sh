@@ -16,7 +16,7 @@ pkgbuild_version() {
         case $key in
             pkgver) pkgver=$value ;;
             pkgrel) pkgrel=$value ;;
-            epoch)  epoch=$value ;;
+            epoch) epoch=$value ;;
         esac
     done <"$srcinfo"
 
