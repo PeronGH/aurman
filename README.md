@@ -14,6 +14,7 @@ aurman.sh <command> [args...]
 |---------|-------------|
 | `install <package>...` | Clone the AUR repo, review the PKGBUILD and any install scripts or hooks, and build with `makepkg -si` after confirmation |
 | `list` | List cloned packages with their installed and PKGBUILD versions |
+| `uninstall <package>...` | Remove all installed packages of the base with `pacman -Rns` and delete the clone |
 | `update` | Pull all cloned repos and run `install` on packages whose PKGBUILD version differs from the installed one |
 
 ## Install
