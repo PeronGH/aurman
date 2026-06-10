@@ -15,6 +15,11 @@ for pkg in "$@"; do
     dir="$AUR_DIR/$pkg"
     if [ ! -d "$dir/.git" ]; then
         git clone "$AUR_URL/$pkg.git" "$dir"
+        if [ ! -f "$dir/PKGBUILD" ]; then
+            rm -rf "$dir"
+            echo "${0##*/}: '$pkg' is not an AUR package base (split packages must be installed by pkgbase)" >&2
+            exit 1
+        fi
     fi
     less "$dir/PKGBUILD"
     read -rp "Build and install $pkg? [y/N] " reply
