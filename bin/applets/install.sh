@@ -21,7 +21,12 @@ for pkg in "$@"; do
             exit 1
         fi
     fi
-    less "$dir/PKGBUILD"
+    review=("$dir/PKGBUILD")
+    for hook in "$dir"/*.install "$dir"/*.hook; do
+        [ -e "$hook" ] || continue
+        review+=("$hook")
+    done
+    less "${review[@]}"
     read -rp "Build and install $pkg? [y/N] " reply
     case $reply in
         [yY]) (cd "$dir" && makepkg -si) ;;

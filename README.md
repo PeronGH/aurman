@@ -12,7 +12,7 @@ aurman.sh <command> [args...]
 
 | Command | Description |
 |---------|-------------|
-| `install <package>...` | Clone the AUR repo, review the PKGBUILD, and build with `makepkg -si` after confirmation |
+| `install <package>...` | Clone the AUR repo, review the PKGBUILD and any install scripts or hooks, and build with `makepkg -si` after confirmation |
 | `list` | List cloned packages with their installed and PKGBUILD versions |
 | `update` | Pull all cloned repos and run `install` on packages whose PKGBUILD version differs from the installed one |
 
