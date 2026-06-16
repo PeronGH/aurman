@@ -13,8 +13,10 @@ mkdir -p "$AUR_DIR"
 
 for pkg in "$@"; do
     dir="$AUR_DIR/$pkg"
+    cloned=false
     if [ ! -d "$dir/.git" ]; then
         git clone "$AUR_URL/$pkg.git" "$dir"
+        cloned=true
         if [ ! -f "$dir/PKGBUILD" ]; then
             rm -rf "$dir"
             echo "${0##*/}: '$pkg' is not an AUR package base (split packages must be installed by pkgbase)" >&2
@@ -31,6 +33,9 @@ for pkg in "$@"; do
     read -rp "Build and install $pkg? [y/N] " reply
     case $reply in
         [yY]) (cd "$dir" && makepkg -si) ;;
-        *) echo "skipping $pkg" ;;
+        *)
+            echo "skipping $pkg"
+            "$cloned" && rm -rf "$dir"
+            ;;
     esac
 done
