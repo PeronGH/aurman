@@ -26,7 +26,7 @@ for pkg in "$@"; do
         [ -e "$hook" ] || continue
         review+=("$hook")
     done
-    less "${review[@]}"
+    tail -v -n +1 "${review[@]}" | "${PAGER:-less}"
     read -rp "Build and install $pkg? [y/N] " reply
     case $reply in
         [yY]) (cd "$dir" && makepkg -si) ;;
