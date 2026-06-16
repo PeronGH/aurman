@@ -22,10 +22,11 @@ for pkg in "$@"; do
         fi
     fi
     review=("$dir/PKGBUILD")
-    for hook in "$dir"/*.install "$dir"/*.hook; do
-        [ -e "$hook" ] || continue
-        review+=("$hook")
-    done
+    if [ -f "$dir/.SRCINFO" ]; then
+        while read -r script; do
+            review+=("$dir/$script")
+        done < <(awk '$1 == "install" { print $3 }' "$dir/.SRCINFO" | sort -u)
+    fi
     tail -v -n +1 "${review[@]}" | "${PAGER:-less}"
     read -rp "Build and install $pkg? [y/N] " reply
     case $reply in
