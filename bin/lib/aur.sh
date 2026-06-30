@@ -76,17 +76,17 @@ clone_validate() {
     fi
 }
 
-# Page the full PKGBUILD and any install scripts it declares.
+# Page every tracked file in the clone, PKGBUILD first. The Arch wiki's verify
+# step calls for inspecting the PKGBUILD, any .install files, and every other
+# file in the package's repository before building.
 review_full() {
     local dir=$1
-    local -a review=("$dir/PKGBUILD")
-    if [ -f "$dir/.SRCINFO" ]; then
-        local script
-        while read -r script; do
-            review+=("$dir/$script")
-        done < <(awk '$1 == "install" { print $3 }' "$dir/.SRCINFO" | sort -u)
-    fi
-    tail -v -n +1 "${review[@]}" | "${PAGER:-less}"
+    local -a files=(PKGBUILD)
+    local f
+    while read -r f; do
+        [ "$f" = PKGBUILD ] || files+=("$f")
+    done < <(git -C "$dir" ls-files)
+    (cd "$dir" && tail -v -n +1 "${files[@]}") | "${PAGER:-less}"
 }
 
 # Page the net content change between two revisions of a clone.
