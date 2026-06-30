@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-AUR_DIR="$HOME/aur"
-AUR_URL="https://aur.archlinux.org"
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/aur.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/aur.sh"
 
 if [ $# -eq 0 ]; then
     echo "usage: ${0##*/} <package>..." >&2
@@ -15,27 +16,14 @@ for pkg in "$@"; do
     dir="$AUR_DIR/$pkg"
     cloned=false
     if [ ! -d "$dir/.git" ]; then
-        git clone "$AUR_URL/$pkg.git" "$dir"
+        clone_validate "$pkg" "$dir"
         cloned=true
-        if [ ! -f "$dir/PKGBUILD" ]; then
-            rm -rf "$dir"
-            echo "${0##*/}: '$pkg' is not an AUR package base (split packages must be installed by pkgbase)" >&2
-            exit 1
-        fi
     fi
-    review=("$dir/PKGBUILD")
-    if [ -f "$dir/.SRCINFO" ]; then
-        while read -r script; do
-            review+=("$dir/$script")
-        done < <(awk '$1 == "install" { print $3 }' "$dir/.SRCINFO" | sort -u)
+    review_full "$dir"
+    if confirm "Build and install $pkg?"; then
+        build "$dir"
+    else
+        echo "skipping $pkg"
+        "$cloned" && rm -rf "$dir"
     fi
-    tail -v -n +1 "${review[@]}" | "${PAGER:-less}"
-    read -rp "Build and install $pkg? [y/N] " reply
-    case $reply in
-        [yY]) (cd "$dir" && makepkg -si) ;;
-        *)
-            echo "skipping $pkg"
-            "$cloned" && rm -rf "$dir"
-            ;;
-    esac
 done

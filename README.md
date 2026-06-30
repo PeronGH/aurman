@@ -15,7 +15,7 @@ aurman.sh <command> [args...]
 | `install <package>...` | Clone, review the PKGBUILD and hooks, build after confirmation |
 | `list` | Show cloned packages with installed and PKGBUILD versions |
 | `uninstall <package>...` | `pacman -Rns` the base's packages and delete the clone |
-| `update [<package>...]` | Pull clones (all, or just those named) and `install` the outdated ones |
+| `update [<package>...]` | Fetch clones (all, or just those named), review the diff for each upstream change, then build the outdated ones |
 
 ## Install
 
@@ -32,6 +32,6 @@ Reload with `source ~/.bash_profile`.
 Scripts are formatted with [shfmt](https://github.com/mvdan/sh) (settings in `.editorconfig`) and linted with [ShellCheck](https://www.shellcheck.net/):
 
 ```sh
-shfmt -w bin/aurman.sh bin/applets/*.sh
+shfmt -w bin/aurman.sh bin/lib/*.sh bin/applets/*.sh
 shellcheck bin/aurman.sh bin/applets/*.sh
 ```

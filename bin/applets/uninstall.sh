@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-AUR_DIR="$HOME/aur"
-
-die() {
-    echo "${0##*/}: $*" >&2
-    exit 1
-}
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/aur.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/aur.sh"
 
 if [ $# -eq 0 ]; then
     echo "usage: ${0##*/} <package>..." >&2
@@ -20,7 +17,7 @@ for pkg in "$@"; do
     [ -d "$dir" ] || die "$pkg: no clone in $AUR_DIR"
     [ -f "$srcinfo" ] || die "$pkg: missing .SRCINFO in $dir"
 
-    mapfile -t names < <(awk '$1 == "pkgname" { print $3 }' "$srcinfo")
+    mapfile -t names < <(pkgbuild_names "$srcinfo")
     [ ${#names[@]} -gt 0 ] || die "$srcinfo: no pkgname entries"
 
     mapfile -t installed < <(pacman -Q "${names[@]}" 2>/dev/null | awk '{print $1}')

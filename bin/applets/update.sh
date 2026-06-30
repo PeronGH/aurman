@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-AUR_DIR="$HOME/aur"
-APPLET_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-die() {
-    echo "${0##*/}: $*" >&2
-    exit 1
-}
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/aur.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/aur.sh"
 
 if [ $# -gt 0 ]; then
     dirs=()
@@ -20,21 +16,42 @@ else
     dirs=("$AUR_DIR"/*/)
 fi
 
+acted=false
 for dir in "${dirs[@]}"; do
     [ -d "$dir/.git" ] || continue
-    echo "pulling $(basename "$dir")"
-    git -C "$dir" pull --ff-only --quiet
+    pkg=$(basename "$dir")
+
+    git -C "$dir" fetch --quiet
+    head=$(git -C "$dir" rev-parse HEAD)
+    target=$(git -C "$dir" rev-parse "$(upstream_ref "$dir")")
+
+    if [ "$head" != "$target" ]; then
+        assert_clean "$dir"
+        if git -C "$dir" diff --quiet "$head" "$target"; then
+            # History rewritten but tree unchanged: resync without rebuilding.
+            advance "$dir" "$target"
+        else
+            acted=true
+            echo "==> $pkg has upstream changes"
+            review_diff "$dir" "$head" "$target"
+            if confirm "Update and install $pkg?"; then
+                update_to "$dir" "$target" "$head"
+            else
+                echo "skipping $pkg"
+            fi
+            continue
+        fi
+    fi
+
+    if ! installed_matches_pkgbuild "$dir"; then
+        acted=true
+        echo "==> $pkg: installed version differs from PKGBUILD"
+        if confirm "Rebuild and install $pkg?"; then
+            build "$dir"
+        else
+            echo "skipping $pkg"
+        fi
+    fi
 done
 
-outdated=$("$APPLET_DIR/list.sh" | awk -v want="$*" '
-    BEGIN { n = split(want, w, " "); for (i = 1; i <= n; i++) sel[w[i]] = 1 }
-    NR > 1 && NF == 3 && $2 != $3 && (n == 0 || sel[$1]) { print $1 }
-')
-
-if [ -z "$outdated" ]; then
-    echo "all packages are up to date"
-    exit 0
-fi
-
-mapfile -t pkgs <<<"$outdated"
-exec "$APPLET_DIR/install.sh" "${pkgs[@]}"
+"$acted" || echo "all packages are up to date"

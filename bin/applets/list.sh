@@ -1,48 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-AUR_DIR="$HOME/aur"
-
-die() {
-    echo "${0##*/}: $*" >&2
-    exit 1
-}
-
-pkgbuild_version() {
-    local srcinfo=$1
-    local key _ value pkgver='' pkgrel='' epoch=''
-
-    while read -r key _ value; do
-        case $key in
-            pkgver) pkgver=$value ;;
-            pkgrel) pkgrel=$value ;;
-            epoch) epoch=$value ;;
-        esac
-    done <"$srcinfo"
-
-    if [ -z "$pkgver" ] || [ -z "$pkgrel" ]; then
-        die "$srcinfo: missing pkgver or pkgrel"
-    fi
-
-    echo "${epoch:+$epoch:}$pkgver-$pkgrel"
-}
-
-pkgbuild_names() {
-    awk '$1 == "pkgname" { print $3 }' "$1"
-}
-
-installed_version() {
-    local -a versions
-    mapfile -t versions < <(pacman -Q "$@" 2>/dev/null | awk '{print $2}' | sort -u)
-    case ${#versions[@]} in
-        0) echo "not installed" ;;
-        1) echo "${versions[0]}" ;;
-        *) echo "mixed" ;;
-    esac
-}
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/aur.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/aur.sh"
 
 printf '%-30s %-20s %s\n' "PACKAGE" "INSTALLED" "PKGBUILD"
 for dir in "$AUR_DIR"/*/; do
+    [ -d "$dir" ] || continue
     pkg=$(basename "$dir")
     srcinfo="$dir/.SRCINFO"
 
