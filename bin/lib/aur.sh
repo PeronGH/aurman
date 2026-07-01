@@ -89,10 +89,10 @@ review_full() {
     (cd "$dir" && tail -v -n +1 "${files[@]}") | "${PAGER:-less}"
 }
 
-# Page the net content change between two revisions of a clone.
+# Page the net content change between two revisions of a clone. Let git drive
+# its own pager so the diff is colored (color.ui=auto) and paged with less -R.
 review_diff() {
-    local dir=$1 base=$2 target=$3
-    git -C "$dir" diff "$base" "$target" | "${PAGER:-less}"
+    git -C "$1" diff "$2" "$3"
 }
 
 # Name of the upstream ref to compare against, or die if there is none.
