@@ -12,7 +12,8 @@ die() {
 
 confirm() {
     local reply
-    read -rp "$1 [y/N] " reply
+    read -rp "$1 [y/N] " -n 1 reply
+    echo
     [[ $reply == [yY] ]]
 }
 
